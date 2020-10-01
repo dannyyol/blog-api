@@ -29,6 +29,9 @@ Route::group(['prefix' => 'v1'], function() {
     // post route
     Route::get('/posts', [PostController::class, 'index']);
 
+    // post show
+    Route::apiResource('/post', PostController::class)->only('show');
+
     // register
     Route::post('/register', [UserController::class, 'register']);
 
@@ -49,7 +52,7 @@ Route::group(['prefix' => 'v1'], function() {
         Route::apiResource('/comment', CommentController::class)->only('destroy', 'update');
 
         // post route
-        Route::apiResource('/post', PostController::class);
+        Route::apiResource('/post', PostController::class)->only('store', 'destroy', 'update');
 
         // logout
         Route::get('/logout', [UserController::class, 'logout']);

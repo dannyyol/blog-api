@@ -20,7 +20,7 @@ class CategoryController extends Controller
     {
         //
         $category = Category::all();
-        return response()->json(CategoryResource::collection($category), 200);
+        return response()->json(['status'=>'success', 'data' => CategoryResource::collection($category)], 200);
 
     }
 
@@ -43,6 +43,11 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         //
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+
+        }
+
         $this->validate($request, [
             'name' => 'required',
         ]);
@@ -90,6 +95,11 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         //
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+
+        }
+
         $this->validate($request, [
             'name' => 'required',
         ]);
@@ -116,6 +126,10 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         //
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+        }
+
         try{
             $category= Category::findOrFail($id);
             $category->delete();

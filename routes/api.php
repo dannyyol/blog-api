@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,25 +23,44 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
-// Route::group(['prefix' => 'v1'], function() {
+Route::group(['prefix' => 'v1'], function() {
+    Route::get('/categories', [CategoryController::class, 'index']);
+
+    // post route
+    Route::get('/posts', [PostController::class, 'index']);
+
+    // register
+    Route::post('/register', [UserController::class, 'register']);
+
+    // login
+    Route::post('/login', [UserController::class, 'login']);
+
+    //user
+    Route::get('/users', [UserController::class, 'index']);
 
 
-// });
+    // Authentication user
+    Route::middleware('auth:api')->group(function () {
+        // category route
+        Route::apiResource('/category', CategoryController::class);
 
-// Route::get('/','Api\PostController@index');
-    // Route::resource('posts','Api\PostController');
+        // comment route
+        Route::post('/comment/create/{post}', [CommentController::class, 'addPostComment']);
+        Route::apiResource('/comment', CommentController::class)->only('destroy', 'update');
 
-// category route
-Route::apiResource('/category', CategoryController::class);
-Route::get('/categories', [CategoryController::class, 'index']);
+        // post route
+        Route::apiResource('/post', PostController::class);
 
-// post route
-Route::apiResource('/post', PostController::class);
-Route::get('/posts', [PostController::class, 'index']);
+        // logout
+        Route::get('/logout', [UserController::class, 'logout']);
 
-// comment route
-Route::post('/comment/create/{post}', [CommentController::class, 'addPostComment']);
-Route::apiResource('/comment', CommentController::class)->only('destroy', 'update');
+        // user route
+        Route::apiResource('/user', UserController::class);
+
+    });
+
+
+});
 
 
 

@@ -25,6 +25,7 @@ class CommentFactory extends Factory
             'fullname' => $this->faker->word,
             'body' => $this->faker ->paragraphs(2, true),
             'email' => $this->faker->email,
+            'user_id' => $this->faker ->numberBetween(1, 5),
             'commentable_id' => $this->faker ->numberBetween(1, 11),
             'commentable_type' =>'App\Models\Post'
         ];

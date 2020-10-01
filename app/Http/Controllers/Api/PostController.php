@@ -19,6 +19,7 @@ class PostController extends Controller
     public function index()
     {
         //
+        
         $posts = Post::latest()->get();
         return response()->json(PostResource::collection($posts), 200);
     }
@@ -42,6 +43,10 @@ class PostController extends Controller
     public function store(Request $request)
     {
 
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+
+        }
         $this->validate($request, [
             'topic' => 'required',
             'body' => 'required|max:255',
@@ -101,6 +106,9 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         //
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+        }
 
         $this->validate($request, [
             'topic' => 'required',
@@ -134,6 +142,10 @@ class PostController extends Controller
     public function destroy($id)
     {
         //
+        if (!\Gate::allows('isAdmin')) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not an admin, you can not perform this action"], 405);
+        }
+
         try{
             $post= Post::findOrFail($id);
             $post->delete();

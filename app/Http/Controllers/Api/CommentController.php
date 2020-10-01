@@ -25,8 +25,11 @@ class CommentController extends Controller
     }
 
 
-    public function addPostComment(Request $request, Post $post, Comment $comment)
+    public function addPostComment(Request $request, Post $post)
      {
+        if (!\Auth::check()) {
+            return response()->json(['status'=>'error', "message" => "Sorry! you are not a user, you can not perform this action"], 405);
+        }
         $this->validate($request,[
             'fullname' =>'required',
             'body'=>'required',
@@ -34,14 +37,18 @@ class CommentController extends Controller
         ]);
         try{
             $form=new Comment();
+            $form->user_id=auth()->user()->id;
             $form->fullname = $request->fullname;
             $form->body = $request->body;
             $form->email=$request->email;
-
-            return response()->json(['status'=>'success', "message" => 'The  comment was created successfully', 'data' => new CommentResource($form)], 200);
+            $post->comments()->save($form);
+            if($form->save()){
+                return response()->json(['status'=>'success', "message" => 'The  comment was created successfully', 'data' => new CommentResource($form)], 200);
+            }
 
         }
         catch(QueryException $err){
+            // dd($err->getMessage());
             return response()->json(['status'=>'error', "message" => "Comment could not be created"], 404);
         }
 
@@ -100,8 +107,14 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment)
     {
-          $comment->update($request->all());
-          return response()->json(['status'=>'success', "message" => 'The comment  was updated successfully', 'data' => new CommentResource($comment)], 200);
+
+        if (\Auth::user()->id == $comment->user_id || \Gate::allows('isAdmin')) {
+            $comment->update($request->all());
+            return response()->json(['status'=>'success', "message" => 'The comment  was updated successfully', 'data' => new CommentResource($comment)], 200);
+        } else{
+            return response()->json(['status'=>'success', "message" => 'You are not authorize to perform this action'], 405);
+        }
+
     }
 
     /**
@@ -110,16 +123,19 @@ class CommentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Comment $comment)
     {
         //
-        try{
-            $comment= Comment::findOrFail($id);
-            $delete_comment = $comment->delete();
-            return response()->json(['status'=>'success', "message" => 'The comment was deleted successfully', 'data' => $delete_comment], 204);
-        }
-        catch(ModelNotFoundException $err){
-            return response()->json(['status'=>'error', "message" => "The requested comment was not found"], 404);
+        if (\Auth::user()->id == $comment->user_id || \Gate::allows('isAdmin')) {
+            try {
+                $comment= Comment::findOrFail($comment->id);
+                $delete_comment = $comment->delete();
+                return response()->json(['status'=>'success', "message" => 'The comment was deleted successfully', 'data' => $delete_comment], 204);
+            } catch (ModelNotFoundException $err) {
+                return response()->json(['status'=>'error', "message" => "The requested comment was not found"], 404);
+            }
+        }else{
+            return response()->json(['status'=>'success', "message" => 'You are not authorize to perform this action'], 405);
         }
     }
 }
